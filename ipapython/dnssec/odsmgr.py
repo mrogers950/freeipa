@@ -128,7 +128,8 @@ class ODSMgr(object):
         Raises CalledProcessError if returncode != 0.
         """
         cmd = ['ods-ksmutil'] + params
-        return ipautil.run(cmd)[0]
+        stdout, _stderr, _rc = ipautil.run(cmd, stdout_encoding='ascii')
+        return stdout
 
     def get_ods_zonelist(self):
         stdout = self.ksmutil(['zonelist', 'export'])

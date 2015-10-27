@@ -110,7 +110,7 @@ class NSSDatabase(object):
     def run_certutil(self, args, stdin=None):
         new_args = [paths.CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
-        return ipautil.run(new_args, stdin)
+        return ipautil.run(new_args, stdin, stdin_encoding='ascii')
 
     def create_db(self, password_filename):
         """Create cert DB
@@ -177,7 +177,7 @@ class NSSDatabase(object):
             pkcs12_passwd = pkcs12_passwd + '\n'
             args = args + ["-w", paths.DEV_STDIN]
         try:
-            ipautil.run(args, stdin=pkcs12_passwd)
+            ipautil.run(args, stdin=pkcs12_passwd, stdin_encoding='ascii')
         except ipautil.CalledProcessError as e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file %s" %
@@ -247,7 +247,10 @@ class NSSDatabase(object):
                             '-print_certs',
                         ]
                         try:
-                            stdout, stderr, rc = ipautil.run(args, stdin=body)
+                            stdout, _stderr, rc = ipautil.run(
+                                args, stdin=body,
+                                stdin_encoding='ascii',
+                                stdout_encoding='ascii')
                         except ipautil.CalledProcessError as e:
                             if label == 'CERTIFICATE':
                                 root_logger.warning(
@@ -286,7 +289,10 @@ class NSSDatabase(object):
                                 '-passin', 'file:' + key_pwdfile.name,
                             ]
                         try:
-                            stdout, stderr, rc = ipautil.run(args, stdin=body)
+                            stdout, _stderr, _rc = ipautil.run(
+                                args, stdin=body,
+                                stdin_encoding='ascii',
+                                stdout_encoding='ascii')
                         except ipautil.CalledProcessError as e:
                             root_logger.warning(
                                 "Skipping private key in %s at line %s: %s",

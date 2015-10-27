@@ -225,7 +225,8 @@ class RedHatCAService(RedHatService):
                     url
                 ]
 
-                stdout, stderr, returncode = ipautil.run(args)
+                stdout, _stderr, _returncode = ipautil.run(
+                    args, stdout_encoding='utf-8')
 
                 status = dogtag._parse_ca_status(stdout)
                 # end of workaround

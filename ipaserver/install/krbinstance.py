@@ -280,7 +280,8 @@ class KrbInstance(service.Service):
             self.master_password + '\n',
         )
         try:
-            ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue))
+            ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue),
+                        stdin_encoding='ascii')
         except ipautil.CalledProcessError as e:
             print("Failed to initialize the realm container")
 
@@ -294,7 +295,9 @@ class KrbInstance(service.Service):
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
         workers = False
-        (stdout, stderr, rc) = ipautil.run(['klist', '-V'], raiseonerr=False)
+        (stdout, stderr, rc) = ipautil.run(['klist', '-V'], raiseonerr=False,
+                                           stdout_encoding='ascii',
+                                           stdout_errors='backslashreplace')
         if rc == 0:
             verstr = stdout.split()[-1]
             ver = version.LooseVersion(verstr)

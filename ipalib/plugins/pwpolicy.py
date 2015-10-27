@@ -279,7 +279,8 @@ class pwpolicy(LDAPObject):
     has_lockout = False
     lockout_params = ()
 
-    (stdout, stderr, rc) = run(['klist', '-V'], raiseonerr=False)
+    stdout, _stderr, rc = run(['klist', '-V'], raiseonerr=False,
+                              stdout_encoding='ascii')
     if rc == 0:
         verstr = stdout.split()[-1]
         ver = version.LooseVersion(verstr)

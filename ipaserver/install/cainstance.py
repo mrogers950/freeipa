@@ -616,7 +616,8 @@ class CAInstance(DogtagInstance):
             cert_chain, stderr, rc = ipautil.run(
                 [paths.OPENSSL, 'crl2pkcs7',
                  '-certfile', self.cert_chain_file,
-                 '-nocrl'])
+                 '-nocrl'],
+                stdout_encoding='ascii')
             # Dogtag chokes on the header and footer, remove them
             # https://bugzilla.redhat.com/show_bug.cgi?id=1127838
             cert_chain = re.search(
@@ -871,7 +872,8 @@ class CAInstance(DogtagInstance):
                 self.fqdn, self.dogtag_constants.AGENT_SECURE_PORT),
         ]
         (stdout, _stderr, _returncode) = ipautil.run(
-            args, nolog=(self.admin_password,))
+            args, nolog=(self.admin_password,),
+            stdout_encoding='ascii')
 
         data = stdout.split(self.dogtag_constants.RACERT_LINE_SEP)
         params = get_defList(data)
@@ -894,7 +896,8 @@ class CAInstance(DogtagInstance):
                 self.fqdn, self.dogtag_constants.AGENT_SECURE_PORT),
         ]
         (stdout, _stderr, _returncode) = ipautil.run(
-            args, nolog=(self.admin_password,))
+            args, nolog=(self.admin_password,),
+            stdout_encoding='ascii')
 
         data = stdout.split(self.dogtag_constants.RACERT_LINE_SEP)
         outputList = get_outputList(data)

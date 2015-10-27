@@ -323,9 +323,10 @@ class SystemdService(PlatformService):
 
         while True:
             try:
-                (sout, serr, rcode) = ipautil.run(
+                sout, _serr, rcode = ipautil.run(
                     [paths.SYSTEMCTL, "is-active", instance],
-                    capture_output=True
+                    capture_output=True,
+                    stdout_encoding='ascii', stdout_strict=False,
                 )
             except ipautil.CalledProcessError as e:
                 if e.returncode == 3 and 'activating' in str(e.output):
@@ -345,9 +346,9 @@ class SystemdService(PlatformService):
 
     def is_installed(self):
         try:
-            (sout, serr, rcode) = ipautil.run([paths.SYSTEMCTL,
-                                               "list-unit-files",
-                                               "--full"])
+            sout, _serr, rcode = ipautil.run(
+                [paths.SYSTEMCTL, "list-unit-files", "--full"],
+                stdout_encoding='ascii', stdout_strict=False)
             if rcode != 0:
                 return False
             else:
@@ -363,10 +364,9 @@ class SystemdService(PlatformService):
     def is_enabled(self, instance_name=""):
         enabled = True
         try:
-            (sout, serr, rcode) = ipautil.run(
-                                      [paths.SYSTEMCTL,
-                                       "is-enabled",
-                                        self.service_instance(instance_name)])
+            _sout, _serr, rcode = ipautil.run(
+                [paths.SYSTEMCTL, "is-enabled",
+                 self.service_instance(instance_name)])
 
             if rcode != 0:
                 enabled = False
@@ -378,10 +378,10 @@ class SystemdService(PlatformService):
     def is_masked(self, instance_name=""):
         masked = False
         try:
-            (sout, serr, rcode) = ipautil.run(
-                                      [paths.SYSTEMCTL,
-                                       "is-enabled",
-                                        self.service_instance(instance_name)])
+            sout, _serr, rcode = ipautil.run(
+                [paths.SYSTEMCTL, "is-enabled",
+                 self.service_instance(instance_name)],
+                stdout_encoding='ascii', stdout_strict=False)
 
             if rcode == 1 and sout == 'masked':
                 masked = True

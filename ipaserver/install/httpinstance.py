@@ -63,7 +63,9 @@ def httpd_443_configured():
     False otherwise.
     """
     try:
-        (stdout, stderr, rc) = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'])
+        (stdout, stderr, rc) = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'],
+                                           stdout_encoding='ascii',
+                                           stdout_errors='backslashreplace')
     except ipautil.CalledProcessError as e:
         service.print_msg("WARNING: cannot check if port 443 is already configured")
         service.print_msg("httpd returned error when checking: %s" % e)

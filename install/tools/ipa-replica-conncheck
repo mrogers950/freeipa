@@ -81,7 +81,9 @@ class SshExec(object):
         elif 'KRB5CCNAME' in os.environ:
             env['KRB5CCNAME'] = os.environ['KRB5CCNAME']
 
-        return ipautil.run(cmd, env=env, raiseonerr=False)
+        return ipautil.run(cmd, env=env, raiseonerr=False,
+                           stdout_encoding='ascii', stdout_strict=False,
+                           stderr_encoding='ascii', stderr_strict=False)
 
 
 class CheckedPort(object):
@@ -403,19 +405,19 @@ def main():
                         sys.exit("Principal password required")
 
 
-                stderr=''
-                (stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
+                (_stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
                      env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                    stdin=password, raiseonerr=False)
+                    stdin=password, raiseonerr=False, stdin_encoding='ascii',
+                    stderr_encoding='ascii', stderr_strict=False)
                 if returncode != 0:
                     raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
 
                 # Verify kinit was actually successful
-                stderr=''
-                (stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
+                (_stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
                      'host/%s' % options.master],
                     env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                    raiseonerr=False)
+                    raiseonerr=False,
+                    stderr_encoding='ascii', stderr_strict=False)
                 if returncode != 0:
                     raise RuntimeError("Could not get ticket for master server: %s" % stderr)
 

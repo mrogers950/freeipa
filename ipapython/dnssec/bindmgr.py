@@ -40,8 +40,9 @@ class BINDMgr(object):
 
     def notify_zone(self, zone):
         cmd = ['rndc', 'sign', zone.to_text()]
-        output = ipautil.run(cmd)[0]
-        self.log.info(output)
+        output, _stderr, _rc = ipautil.run(cmd, stdout_encoding='ascii',
+                                           stdout_strict=False)
+        self.log.info('%s', output)
 
     def dn2zone_name(self, dn):
         """cn=KSK-20140813162153Z-cede9e182fc4af76c4bddbc19123a565,cn=keys,idnsname=test,cn=dns,dc=ipa,dc=example"""
@@ -110,7 +111,8 @@ class BINDMgr(object):
         cmd.append(zone.to_text())
 
         # keys has to be readable by ODS & named
-        basename = ipautil.run(cmd)[0].strip()
+        stdout, _stderr, _rc = ipautil.run(cmd, stdout_encoding='ascii')
+        basename = stdout.strip()
         private_fn = "%s/%s.private" % (workdir, basename)
         os.chmod(private_fn, FILE_PERM)
         # this is useful mainly for debugging

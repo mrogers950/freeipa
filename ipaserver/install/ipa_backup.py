@@ -619,7 +619,7 @@ class Backup(admintool.AdminTool):
                ]
         (stdout, stderr, rc) = run(args, raiseonerr=False)
         if rc != 0:
-            raise admintool.ScriptError('tar returned non-zero %d: %s' % (rc, stdout))
+            raise admintool.ScriptError('tar returned non-zero %d: %s' % (rc, stderr))
 
         if encrypt:
             self.log.info('Encrypting %s' % filename)

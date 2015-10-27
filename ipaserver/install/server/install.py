@@ -1066,7 +1066,9 @@ def uninstall(installer):
     try:
         (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master",
                                     "--unattended", "--uninstall"],
-                                   raiseonerr=False)
+                                   raiseonerr=False,
+                               stdout_encoding='ascii',
+                               stdout_errors='backslashreplace')
         if rc not in [0, 2]:
             root_logger.debug("ipa-client-install returned %d" % rc)
             raise RuntimeError(stdout)

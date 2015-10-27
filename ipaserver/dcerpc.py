@@ -600,7 +600,8 @@ class DomainValidator(object):
         (stdout, stderr, returncode) = ipautil.run(
             [paths.KINIT, '-kt', keytab, principal],
             env={'KRB5CCNAME': ccache_path},
-            raiseonerr=False)
+            raiseonerr=False,
+            stdout_encoding='ascii', stdout_errors='backslashreplace')
 
         if returncode == 0:
             return (ccache_path, principal)
@@ -646,7 +647,10 @@ class DomainValidator(object):
             [paths.KINIT, principal],
             env={'KRB5CCNAME': ccache_path},
             stdin=password,
-            raiseonerr=False)
+            raiseonerr=False,
+            stdin_encoding='ascii',
+            stdout_encoding='ascii',
+            stdout_errors='backslashreplace')
 
         if returncode == 0:
             return (ccache_path, principal)

@@ -200,7 +200,8 @@ def set_and_check_netbios_name(netbios_name, unattended):
 
 def ensure_admin_kinit(admin_name, admin_password):
     try:
-        ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
+        ipautil.run(['kinit', admin_name], stdin=admin_password+'\n',
+                    stdin_encoding='ascii')
     except ipautil.CalledProcessError as e:
         print("There was error to automatically re-kinit your admin user ticket.")
         return False

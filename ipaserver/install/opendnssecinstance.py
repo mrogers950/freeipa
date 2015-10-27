@@ -289,7 +289,8 @@ class OpenDNSSECInstance(service.Service):
             ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
             stdout, stderr, retcode = ipautil.run(cmd,
-                                          runas=ods_enforcerd.get_user_name())
+                                          runas=ods_enforcerd.get_user_name(),
+                                          stdout_encoding='ascii')
             with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as zonelistf:
                 zonelistf.write(stdout)
                 os.chown(paths.OPENDNSSEC_ZONELIST_FILE,
@@ -304,7 +305,7 @@ class OpenDNSSECInstance(service.Service):
             ]
 
             ods_enforcerd = services.knownservices.ods_enforcerd
-            ipautil.run(command, stdin="y", runas=ods_enforcerd.get_user_name())
+            ipautil.run(command, stdin=b"y", runas=ods_enforcerd.get_user_name())
 
     def __setup_dnskeysyncd(self):
         # set up dnskeysyncd this is DNSSEC master

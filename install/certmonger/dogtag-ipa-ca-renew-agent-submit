@@ -156,8 +156,13 @@ def request_cert():
     args = [path] + sys.argv[1:]
     if os.environ.get('CERTMONGER_CA_PROFILE') == 'caCACert':
         args += ['-N', '-O', 'bypassCAnotafter=true']
-    stdout, stderr, rc = ipautil.run(args, raiseonerr=False, env=os.environ)
-    sys.stderr.write(stderr)
+    stdout, stderr, rc = ipautil.run(args, raiseonerr=False, env=os.environ,
+                                     stdout_encoding='ascii')
+    if six.PY2:
+        sys.stderr.write(stderr)
+    else:
+        # Write bytes directly
+        sys.stderr.buffer.write(stderr)
     sys.stderr.flush()
 
     syslog.syslog(syslog.LOG_NOTICE, "dogtag-ipa-renew-agent returned %d" % rc)

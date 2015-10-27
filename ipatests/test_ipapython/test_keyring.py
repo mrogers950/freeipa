@@ -24,12 +24,12 @@ from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipapython import kernel_keyring
 
 TEST_KEY = 'ipa_test'
-TEST_VALUE = 'abc123'
-UPDATE_VALUE = '123abc'
+TEST_VALUE = b'abc123'
+UPDATE_VALUE = b'123abc'
 
-SIZE_256 = 'abcdefgh' * 32
-SIZE_512 = 'abcdefgh' * 64
-SIZE_1024 = 'abcdefgh' * 128
+SIZE_256 = b'abcdefgh' * 32
+SIZE_512 = b'abcdefgh' * 64
+SIZE_1024 = b'abcdefgh' * 128
 
 class test_keyring(object):
     """
@@ -90,9 +90,10 @@ class test_keyring(object):
 
         # Now update it 10 times
         for i in range(10):
-            kernel_keyring.update_key(TEST_KEY, 'test %d' %  i)
+            value = ('test %d' %  i).encode('ascii')
+            kernel_keyring.update_key(TEST_KEY, value)
             result = kernel_keyring.read_key(TEST_KEY)
-            assert(result == 'test %d' % i)
+            assert(result == value)
 
         kernel_keyring.del_key(TEST_KEY)
 

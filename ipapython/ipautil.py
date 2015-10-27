@@ -154,8 +154,10 @@ class CheckedIPAddress(netaddr.IPAddress):
             elif addr.version == 6:
                 family = 'inet6'
 
-            ipresult = run([paths.IP, '-family', family, '-oneline', 'address', 'show'])
-            lines = ipresult[0].split('\n')
+            stdout, _stderr, _rc = run(
+                [paths.IP, '-family', family, '-oneline', 'address', 'show'],
+                stdout_encoding='ascii')
+            lines = stdout.split('\n')
             for line in lines:
                 fields = line.split()
                 if len(fields) < 4:
@@ -255,11 +257,22 @@ def write_tmp_file(txt):
     return fd
 
 def shell_quote(string):
-    return "'" + string.replace("'", "'\\''") + "'"
+    if isinstance(string, str):
+        return "'" + string.replace("'", "'\\''") + "'"
+    else:
+        return b"'" + string.replace(b"'", b"'\\''") + b"'"
+
+def _errors_param(strict):
+    if strict:
+        return 'strict'
+    else:
+        return 'backslashreplace'
 
 def run(args, stdin=None, raiseonerr=True,
         nolog=(), env=None, capture_output=True, skip_output=False, cwd=None,
-        runas=None, timeout=None, suplementary_groups=[]):
+        runas=None, timeout=None, suplementary_groups=[],
+        stdin_encoding=None, stdout_encoding=None, stderr_encoding=None,
+        stdout_strict=True, stderr_strict=True):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -292,6 +305,9 @@ def run(args, stdin=None, raiseonerr=True,
     :param suplementary_groups: List of group names that will be used as
         suplementary groups for subporcess.
         The option runas must be specified together with this option.
+    
+    XXX: Document the encoding params!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    (they're only for py3!)
     """
     assert isinstance(suplementary_groups, list)
     p_in = None
@@ -318,12 +334,15 @@ def run(args, stdin=None, raiseonerr=True,
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
 
+    if six.PY3 and stdin is not None and stdin_encoding:
+        stdin = stdin.encode(stdin_encoding)
+
     if timeout:
         # If a timeout was provided, use the timeout command
         # to execute the requested command.
         args[0:0] = [paths.BIN_TIMEOUT, str(timeout)]
 
-    arg_string = nolog_replace(' '.join(shell_quote(a) for a in args), nolog)
+    arg_string = nolog_replace(' '.join(str(shell_quote(a)) for a in args), nolog)
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
@@ -352,7 +371,15 @@ def run(args, stdin=None, raiseonerr=True,
                              close_fds=True, env=env, cwd=cwd,
                              preexec_fn=preexec_fn)
         stdout,stderr = p.communicate(stdin)
-        stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
+        if six.PY2:
+            stdout, stderr = str(stdout), str(stderr)    # Make pylint happy
+        else:
+            if stdout_encoding:
+                stdout = stdout.decode(stdout_encoding,
+                                       errors=_errors_param(stdout_strict))
+            if stderr_encoding:
+                stderr = stderr.decode(stderr_encoding,
+                                       errors=_errors_param(stderr_strict))
     except KeyboardInterrupt:
         root_logger.debug('Process interrupted')
         p.wait()
@@ -374,8 +401,16 @@ def run(args, stdin=None, raiseonerr=True,
     if capture_output and not skip_output:
         stdout = nolog_replace(stdout, nolog)
         stderr = nolog_replace(stderr, nolog)
-        root_logger.debug('stdout=%s' % stdout)
-        root_logger.debug('stderr=%s' % stderr)
+        if six.PY3 and isinstance(stdout, bytes):
+            stdout_logstr = stdout.decode('utf-8', errors='backslashreplace')
+        else:
+            stdout_logstr = stdout
+        if six.PY3 and isinstance(stderr, bytes):
+            stderr_logstr = stderr.decode('utf-8', errors='backslashreplace')
+        else:
+            stderr_logstr = stderr
+        root_logger.debug('stdout=%s' % stdout_logstr)
+        root_logger.debug('stderr=%s' % stderr_logstr)
 
     if p.returncode != 0 and raiseonerr:
         raise CalledProcessError(p.returncode, arg_string, stdout)
